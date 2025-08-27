@@ -63,6 +63,10 @@ class AudioProvider with ChangeNotifier {
       } else {
         if (state.processingState == ProcessingState.completed) {
           _playerState = PlayerState.completed;
+          // 重置播放位置到结尾
+          _position = _audioPlayer.duration ?? Duration.zero;
+          notifyListeners();
+          // 播放下一首歌
           _playNext();
         } else if (state.processingState == ProcessingState.idle) {
           _playerState = PlayerState.stopped;
@@ -77,7 +81,13 @@ class AudioProvider with ChangeNotifier {
     
     // 播放位置监听
     _audioPlayer.positionStream.listen((position) {
-      _position = position;
+      // 确保位置不超过总时长
+      final duration = _audioPlayer.duration ?? Duration.zero;
+      if (duration.inMilliseconds > 0 && position.inMilliseconds > duration.inMilliseconds) {
+        _position = duration;
+      } else {
+        _position = position;
+      }
       notifyListeners();
     });
     
@@ -182,7 +192,12 @@ class AudioProvider with ChangeNotifier {
   // 跳转到特定位置
   Future<void> seekTo(Duration position) async {
     try {
-      await _audioPlayer.seek(position);
+      final duration = _audioPlayer.duration ?? Duration.zero;
+      // 确保跳转位置不超过总时长
+      final safePosition = position.inMilliseconds > duration.inMilliseconds 
+          ? duration 
+          : position;
+      await _audioPlayer.seek(safePosition);
     } catch (e) {
       debugPrint('跳转到特定位置时出错: $e');
     }

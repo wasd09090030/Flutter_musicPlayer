@@ -96,17 +96,27 @@ class PlayerScreen extends StatelessWidget {
                 final position = snapshot.data ?? Duration.zero;
                 final duration = audioProvider.duration;
                 
+                // 确保position不超过duration，避免Slider范围错误
+                final safePosition = position.inMilliseconds > duration.inMilliseconds 
+                    ? duration.inMilliseconds 
+                    : position.inMilliseconds;
+                
+                // 确保duration不为0，避免除零错误
+                final safeDuration = duration.inMilliseconds > 0 
+                    ? duration.inMilliseconds 
+                    : 1;
+                
                 return Column(
                   children: [
                     Slider(
-                      value: position.inMilliseconds.toDouble(),
+                      value: safePosition.toDouble(),
                       min: 0,
-                      max: duration.inMilliseconds.toDouble(),
-                      onChanged: (value) {
+                      max: safeDuration.toDouble(),
+                      onChanged: duration.inMilliseconds > 0 ? (value) {
                         audioProvider.seekTo(
                           Duration(milliseconds: value.toInt()),
                         );
-                      },
+                      } : null,
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
