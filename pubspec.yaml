@@ -1,0 +1,39 @@
+name: myplayer
+description: A simple local music player built with Flutter.
+
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Audio Playing
+  just_audio: ^0.9.36
+  audio_session: ^0.1.18
+  
+  # File System & Storage
+  path_provider: ^2.1.1
+  permission_handler: ^11.0.1
+  
+  # UI Components
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+
+  # Uncomment the following line if you want to include music files in the app bundle
+  # assets:
+  #   - assets/music/
