@@ -18,6 +18,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = false;
   String _error = '';
+  String _scanInfo = '';
 
   @override
   void initState() {
@@ -54,6 +55,16 @@ class _HomeScreenState extends State<HomeScreen> {
         songListProvider.setSongs(songs);
         setState(() {
           _error = '';
+          _scanInfo = '找到 ${songs.length} 首音乐 (已过滤小于3MB的文件)';
+        });
+        
+        // 3秒后清除扫描信息
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) {
+            setState(() {
+              _scanInfo = '';
+            });
+          }
         });
       }
     } catch (e) {
@@ -108,49 +119,76 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               : songList.songs.isEmpty
                   ? const Center(child: Text('没有找到音乐文件'))
-                  : ListView.builder(
-                      itemCount: songList.songs.length,
-                      itemBuilder: (context, index) {
-                        final song = songList.songs[index];
-                        return SongListTile(
-                          song: song,
-                          isPlaying: audioProvider.currentSong?.id == song.id &&
-                              audioProvider.playerState == PlayerState.playing,
-                          onTap: () {
-                            audioProvider.setPlaylist(
-                              songList.songs,
-                              initialIndex: index,
-                            );
-                            
-                            // 打开播放器屏幕
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const PlayerScreen(),
+                  : Column(
+                      children: [
+                        if (_scanInfo.isNotEmpty)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _scanInfo,
+                              style: const TextStyle(
+                                color: Colors.blue,
+                                fontSize: 12,
                               ),
-                            );
-                          },
-                        );
-                      },
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: songList.songs.length,
+                            itemBuilder: (context, index) {
+                              final song = songList.songs[index];
+                              return SongListTile(
+                                song: song,
+                                isPlaying: audioProvider.currentSong?.id == song.id &&
+                                    audioProvider.playerState == PlayerState.playing,
+                                onTap: () {
+                                  audioProvider.setPlaylist(
+                                    songList.songs,
+                                    initialIndex: index,
+                                  );
+                                  
+                                  // 打开播放器屏幕
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const PlayerScreen(),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     ),
       bottomNavigationBar: audioProvider.currentSong != null
           ? Container(
-              color: Theme.of(context).cardColor,
+              color: Colors.grey[900], // 深色背景
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ListTile(
-                    leading: const CircleAvatar(
-                      child: Icon(Icons.music_note),
-                    ),
+                    leading: _buildBottomPlayerAvatar(audioProvider.currentSong!),
                     title: Text(
                       audioProvider.currentSong?.title ?? '',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white, // 白色字体
+                      ),
                     ),
                     subtitle: Text(
                       audioProvider.currentSong?.artist ?? '',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white70), // 半透明白色
                     ),
                     trailing: const MiniPlayerControls(),
                     onTap: () {
@@ -161,13 +199,42 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     },
                   ),
-                  const LinearProgressIndicator(
-                    backgroundColor: Colors.transparent,
+                  LinearProgressIndicator(
+                    backgroundColor: Colors.grey[700], // 深色背景下的进度条背景
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 ],
               ),
             )
           : null,
+    );
+  }
+
+  // 构建底部播放器头像（专辑封面或默认图标）
+  Widget _buildBottomPlayerAvatar(Song currentSong) {
+    if (currentSong.albumArt != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(25), // 圆形
+        child: Image.memory(
+          currentSong.albumArt!,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return _buildDefaultBottomAvatar();
+          },
+        ),
+      );
+    } else {
+      return _buildDefaultBottomAvatar();
+    }
+  }
+
+  // 构建默认底部头像
+  Widget _buildDefaultBottomAvatar() {
+    return CircleAvatar(
+      backgroundColor: Colors.blue,
+      child: const Icon(Icons.music_note, color: Colors.white),
     );
   }
 }

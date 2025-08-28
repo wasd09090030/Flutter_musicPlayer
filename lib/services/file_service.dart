@@ -11,6 +11,9 @@ class FileService {
     'mp3', 'wav', 'flac', 'aac', 'm4a', 'ogg'
   ];
   
+  // 最小文件大小（3MB = 3 * 1024 * 1024 字节）
+  static const int _minFileSizeBytes = 3 * 1024 * 1024;
+  
   // 检查权限
   static Future<bool> _checkPermission() async {
     // Android 13+ (API 33+) 使用 READ_MEDIA_AUDIO 权限
@@ -57,6 +60,25 @@ class FileService {
     }
   }
   
+  // 检查文件是否有效（大小符合要求且格式支持）
+  static Future<bool> _isValidAudioFile(File file) async {
+    try {
+      // 检查文件大小
+      final fileSize = await file.length();
+      if (fileSize < _minFileSizeBytes) {
+        debugPrint('文件太小，跳过: ${file.path} (${fileSize} bytes)');
+        return false;
+      }
+      
+      // 检查文件扩展名
+      final path = file.path.toLowerCase();
+      return _supportedExtensions.any((ext) => path.endsWith('.$ext'));
+    } catch (e) {
+      debugPrint('检查文件时出错: ${file.path}, $e');
+      return false;
+    }
+  }
+  
   // 扫描单个目录（非递归，避免权限问题）
   static Future<void> _scanDirectory(Directory dir, List<String> filePaths) async {
     try {
@@ -64,8 +86,8 @@ class FileService {
       
       for (final entity in entities) {
         if (entity is File) {
-          final path = entity.path.toLowerCase();
-          if (_supportedExtensions.any((ext) => path.endsWith('.$ext'))) {
+          // 使用新的验证方法检查文件
+          if (await _isValidAudioFile(entity)) {
             filePaths.add(entity.path);
           }
         } else if (entity is Directory) {

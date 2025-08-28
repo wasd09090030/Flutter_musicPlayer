@@ -22,9 +22,9 @@ class PlayerControls extends StatelessWidget {
         
         // 播放/暂停
         Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: Theme.of(context).primaryColor,
+            color: Colors.blue,
           ),
           child: IconButton(
             icon: Icon(
@@ -61,7 +61,7 @@ class MiniPlayerControls extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          icon: const Icon(Icons.skip_previous),
+          icon: const Icon(Icons.skip_previous, color: Colors.white),
           onPressed: () => audioProvider.playPrevious(),
         ),
         IconButton(
@@ -69,11 +69,12 @@ class MiniPlayerControls extends StatelessWidget {
             audioProvider.playerState == PlayerState.playing
                 ? Icons.pause
                 : Icons.play_arrow,
+            color: Colors.white,
           ),
           onPressed: () => audioProvider.togglePlay(),
         ),
         IconButton(
-          icon: const Icon(Icons.skip_next),
+          icon: const Icon(Icons.skip_next, color: Colors.white),
           onPressed: () => audioProvider.playNext(),
         ),
       ],

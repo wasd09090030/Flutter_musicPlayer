@@ -17,14 +17,29 @@ class SongListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: _buildLeadingWidget(context),
-      title: Text(
-        song.title,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
-          color: isPlaying ? Theme.of(context).primaryColor : null,
-        ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              song.title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontWeight: isPlaying ? FontWeight.bold : FontWeight.normal,
+                color: isPlaying ? Colors.blue : null,
+              ),
+            ),
+          ),
+          if (isPlaying)
+            Container(
+              margin: const EdgeInsets.only(left: 8),
+              child: Icon(
+                Icons.volume_up,
+                size: 16,
+                color: Colors.blue,
+              ),
+            ),
+        ],
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -85,7 +100,7 @@ class SongListTile extends StatelessWidget {
   // 构建默认图标
   Widget _buildDefaultIcon(BuildContext context) {
     return CircleAvatar(
-      backgroundColor: isPlaying ? Theme.of(context).primaryColor : Colors.grey[300],
+      backgroundColor: isPlaying ? Colors.blue : Colors.grey[300],
       child: Icon(
         isPlaying ? Icons.music_note : Icons.music_note_outlined,
         color: isPlaying ? Colors.white : Colors.grey[700],
