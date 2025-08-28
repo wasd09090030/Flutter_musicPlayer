@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'dart:typed_data';
+import '../services/metadata_service.dart';
 
 class Song {
   final String id;           // 唯一标识符
@@ -7,7 +9,10 @@ class Song {
   final String album;        // 专辑
   final String filePath;     // 文件路径
   final Duration? duration;  // 时长
-  final String? albumArt;    // 专辑封面路径 (可能为空)
+  final Uint8List? albumArt; // 专辑封面数据 (可能为空)
+  final int? trackNumber;    // 音轨号
+  final int? year;           // 年份
+  final String? genre;       // 流派
 
   Song({
     required this.id,
@@ -17,6 +22,9 @@ class Song {
     required this.filePath,
     this.duration,
     this.albumArt,
+    this.trackNumber,
+    this.year,
+    this.genre,
   });
 
   @override
@@ -24,7 +32,7 @@ class Song {
     return '$title by $artist';
   }
 
-  // 从文件路径创建简单的Song对象
+  // 从文件路径创建简单的Song对象（无元数据）
   factory Song.fromFilePath(String path, String id) {
     // 从文件路径提取文件名作为标题
     final fileName = path.split('/').last;
@@ -36,6 +44,26 @@ class Song {
       artist: '未知艺术家',
       album: '未知专辑',
       filePath: path,
+    );
+  }
+  
+  // 从元数据创建Song对象
+  factory Song.fromMetadata({
+    required String id,
+    required String filePath,
+    required SongMetadata metadata,
+  }) {
+    return Song(
+      id: id,
+      title: metadata.title,
+      artist: metadata.artist,
+      album: metadata.album,
+      filePath: filePath,
+      duration: metadata.duration,
+      albumArt: metadata.albumArt,
+      trackNumber: metadata.trackNumber,
+      year: metadata.year,
+      genre: metadata.genre,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/song.dart';
+import 'metadata_service.dart';
 
 class FileService {
   // 音频文件扩展名
@@ -57,23 +58,20 @@ class FileService {
   }
   
   // 扫描单个目录（非递归，避免权限问题）
-  static Future<void> _scanDirectory(Directory dir, List<Song> songs, int startId) async {
+  static Future<void> _scanDirectory(Directory dir, List<String> filePaths) async {
     try {
       final entities = await dir.list(recursive: false, followLinks: false).toList();
-      int id = startId;
       
       for (final entity in entities) {
         if (entity is File) {
           final path = entity.path.toLowerCase();
           if (_supportedExtensions.any((ext) => path.endsWith('.$ext'))) {
-            final song = Song.fromFilePath(entity.path, id.toString());
-            songs.add(song);
-            id++;
+            filePaths.add(entity.path);
           }
         } else if (entity is Directory) {
           // 递归扫描子目录，但要处理权限异常
           try {
-            await _scanDirectory(entity, songs, id);
+            await _scanDirectory(entity, filePaths);
           } catch (e) {
             debugPrint('跳过无法访问的子目录: ${entity.path}');
             // 继续扫描其他目录
@@ -88,8 +86,6 @@ class FileService {
   
   // 扫描设备上的音频文件
   static Future<List<Song>> scanAudioFiles() async {
-    List<Song> songs = [];
-    
     // 检查权限
     bool hasPermission = false;
     try {
@@ -140,14 +136,19 @@ class FileService {
         directories.add(documentsDir);
       }
       
-      // 扫描所有目录
-      int id = 0;
+      // 扫描所有目录，收集文件路径
+      List<String> filePaths = [];
       for (var dir in directories) {
-        await _scanDirectory(dir, songs, id);
-        id = songs.length; // 更新ID起始值
+        await _scanDirectory(dir, filePaths);
       }
       
-      return songs;
+      // 使用元数据服务批量处理音频文件
+      if (filePaths.isNotEmpty) {
+        final songs = await MetadataService.readMultipleAudioMetadata(filePaths);
+        return songs;
+      }
+      
+      return [];
     } catch (e) {
       debugPrint('扫描音频文件时出错: $e');
       return [];

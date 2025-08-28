@@ -23,6 +23,9 @@ dependencies:
   path_provider: ^2.1.1
   permission_handler: ^11.0.1
   
+  # Metadata Reading
+  audio_metadata_reader: ^1.4.2
+  
   # UI Components
   cupertino_icons: ^1.0.6
 

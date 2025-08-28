@@ -36,7 +36,6 @@ class PlayerScreen extends StatelessWidget {
                     width: 250,
                     height: 250,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: [
                         BoxShadow(
@@ -47,12 +46,17 @@ class PlayerScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.music_note,
-                        size: 100,
-                        color: Colors.white,
-                      ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: currentSong.albumArt != null
+                          ? Image.memory(
+                              currentSong.albumArt!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return _buildDefaultAlbumArt();
+                              },
+                            )
+                          : _buildDefaultAlbumArt(),
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -140,6 +144,20 @@ class PlayerScreen extends StatelessWidget {
             child: PlayerControls(),
           ),
         ],
+      ),
+    );
+  }
+  
+  // 构建默认专辑封面
+  Widget _buildDefaultAlbumArt() {
+    return Container(
+      color: Colors.grey[300],
+      child: const Center(
+        child: Icon(
+          Icons.music_note,
+          size: 100,
+          color: Colors.white,
+        ),
       ),
     );
   }
